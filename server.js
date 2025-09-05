@@ -1,4 +1,3 @@
-
 const express = require('express')
 const app = express()
 app.use(express.json())
@@ -47,12 +46,40 @@ app.post('/api/person', (req,res)=>{
    res.status(200).send('Server recive newPerson OK!!')
 })
 
-app.put('/api/person/:pid', (req,res) => {
+app.put('/api/person/:pid', (req, res) => {
    const pid = req.params.pid
    const updatePerson = req.body
-   let index = dataPersonJSON.findIndex(pid)
 
-   res.status(200).send('Server recive updatePerson OK!!')
+   if (!updatePerson || Object.keys(updatePerson).length === 0) {
+      return res.status(400).send('No update data provided')
+   }
+   const index = dataPersonJSON.findIndex(person => person.id == pid)
+   if (index === -1) {
+      return res.status(404).send('Person not found')
+   }
+   
+   const { id, ...rest } = updatePerson
+   dataPersonJSON[index] = { ...dataPersonJSON[index], ...rest }
+
+   console.log('Updated person:', dataPersonJSON[index])
+
+   res.status(200).json({
+      message: 'Server recive updatePerson OK!!'
+   })
+})
+
+app.delete('/api/person/:pid', (req, res) => {
+   const pid = req.params.pid
+   const index = dataPersonJSON.findIndex(person => person.id == pid)
+   if (index !== -1) {
+      const deletedPerson = dataPersonJSON[index]
+      dataPersonJSON.splice(index, 1)
+      console.log('Deleted person:', deletedPerson)
+      console.log('Current users:', dataPersonJSON)
+      res.status(200).send('Server deleted person OK!!')
+   } else {
+      res.status(404).send('Person not found')
+   }
 })
 
 app.listen(3000, () => {console.log('workshop#2 API Services is running on port 3000'),
